@@ -1,0 +1,21 @@
+#scrambledInput, #unscrambleButton {
+    margin: 10px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+#unscrambleButton {
+    border: 0;
+    color: white;
+    background-color: blueviolet;
+}
+
+#resultsContainer {
+    margin-top: 20px;
+}
+
+ul {
+    list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
