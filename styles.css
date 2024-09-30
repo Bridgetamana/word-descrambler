@@ -1,3 +1,16 @@
+body {
+    width: 80%;
+    max-width: 40rem;
+    margin: 0 auto;
+}
+
+.container {
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 #scrambledInput, #unscrambleButton {
     margin: 10px;
     padding: 10px;
@@ -8,6 +21,8 @@
     border: 0;
     color: white;
     background-color: blueviolet;
+    cursor: pointer;
+    width: 200px;
 }
 
 #resultsContainer {
