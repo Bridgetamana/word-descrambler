@@ -1,5 +1,5 @@
 // main.js
-import WORD_API_KEY from "./apiKey";
+import WORD_API_KEY from "./apiKey.js";
 
 function generatePermutations(inputString) {
     const uniquePermutations = [];
