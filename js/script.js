@@ -1,3 +1,6 @@
+// main.js
+import WORD_API_KEY from "./apiKey";
+
 function generatePermutations(inputString) {
     const uniquePermutations = [];
 
@@ -14,17 +17,54 @@ function generatePermutations(inputString) {
             }
         }
     }
-    for (let length = 2; length <= inputString.length; length++) {
+
+    for (let length = 3; length <= inputString.length; length++) {
         generateUniquePermutations(inputString.split(""), 0, length);
     }
 
     return uniquePermutations;
 }
 
-function descrambleWords() {
+async function isValidWord(word) {
+    const apiKey = WORD_API_KEY;  // Using the imported API key here
+    const url = `https://api.wordnik.com/v4/word.json/${word}/scrabbleScore?api_key=${apiKey}`;
+    
+    try {
+        const response = await fetch(url);
+        
+        if (response.status === 200) {
+            return true;
+        } else if (response.status === 404) {
+            return false;
+        } else if (response.status === 429) {
+            console.warn(`Rate limit exceeded for word "${word}". Pausing before retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 4000));
+            return await isValidWord(word);
+        } else {
+            console.error(`Error: Received status ${response.status} for word "${word}"`);
+            return false;
+        }
+
+    } catch (error) {
+        console.error('Error checking word validity:', error);
+        return false;
+    }
+}
+
+// Main function to descramble words and filter valid ones
+async function descrambleWords() {
     const input = document.getElementById('scrambledInput').value;
-    const combinations = generatePermutations(input);
-    const categorizedWords = categorizeByLength(combinations);
+    const combinations = generatePermutations(input); 
+    const validWords = [];
+
+    for (const word of combinations) {
+        const isValid = await isValidWord(word);
+        if (isValid) {
+            validWords.push(word);
+        }
+    }
+
+    const categorizedWords = categorizeByLength(validWords);
     displayResults(categorizedWords);
 }
 
