@@ -5,13 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Word Unscrambler</title>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
   </head>
   <body>
     <div class="container">
-      <input type="text" id="scrambledInput" placeholder="Enter a word" />
-      <button id="unscrambleButton">Unscramble</button>
+      <div class="card">
+        <h1 class="title">Word Unscrambler</h1>
+        <p class="subtitle">Enter your scrambled letters below</p>
 
-      <div id="resultsContainer"></div>
+        <div class="input-group">
+          <input
+            type="text"
+            id="scrambledInput"
+            placeholder="Enter letters..."
+            maxlength="15"
+          />
+          <button id="unscrambleButton">
+            <span class="button-text">Unscramble</span>
+            <span class="loading-spinner hidden">
+              <i class="fas fa-spinner fa-spin"></i>
+            </span>
+          </button>
+        </div>
+
+        <div class="inline-error"></div>
+
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-label">Total Words</span>
+            <span class="stat-value" id="totalWords">0</span>
+          </div>
+        </div>
+
+        <div id="resultsContainer" class="results-container"></div>
+      </div>
     </div>
 
     <script type="module" src="./js/script.js"></script>

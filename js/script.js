@@ -1,6 +1,3 @@
-// main.js
-import WORD_API_KEY from "./apiKey.js";
-
 function generatePermutations(inputString) {
     const uniquePermutations = [];
 
@@ -18,7 +15,7 @@ function generatePermutations(inputString) {
         }
     }
 
-    for (let length = 3; length <= inputString.length; length++) {
+    for (let length = 2; length <= inputString.length; length++) {
         generateUniquePermutations(inputString.split(""), 0, length);
     }
 
@@ -26,8 +23,7 @@ function generatePermutations(inputString) {
 }
 
 async function isValidWord(word) {
-    const apiKey = WORD_API_KEY;  // Using the imported API key here
-    const url = `https://api.wordnik.com/v4/word.json/${word}/scrabbleScore?api_key=${apiKey}`;
+    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
     
     try {
         const response = await fetch(url);
@@ -51,21 +47,63 @@ async function isValidWord(word) {
     }
 }
 
-// Main function to descramble words and filter valid ones
-async function descrambleWords() {
-    const input = document.getElementById('scrambledInput').value;
-    const combinations = generatePermutations(input); 
-    const validWords = [];
+function updateStats(categorizedWords) {
+    let totalWords = 0;
+    
+    Object.entries(categorizedWords).forEach(([length, words]) => {
+        totalWords += words.length;
+    });
+    
+    document.getElementById('totalWords').textContent = totalWords;
+}
 
-    for (const word of combinations) {
-        const isValid = await isValidWord(word);
-        if (isValid) {
-            validWords.push(word);
-        }
+function toggleLoadingState(isLoading) {
+    const buttonText = document.querySelector('.button-text');
+    const loadingSpinner = document.querySelector('.loading-spinner');
+    const unscrambleButton = document.getElementById('unscrambleButton');
+    
+    if (isLoading) {
+        buttonText.classList.add('hidden');
+        loadingSpinner.classList.remove('hidden');
+        unscrambleButton.disabled = true;
+    } else {
+        buttonText.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+        unscrambleButton.disabled = false;
     }
+}
 
-    const categorizedWords = categorizeByLength(validWords);
-    displayResults(categorizedWords);
+async function descrambleWords() {
+    const input = document.getElementById('scrambledInput').value.trim().toLowerCase();
+    
+    toggleLoadingState(true);
+    const combinations = generatePermutations(input);
+    const validWords = [];
+    
+    try {
+        const batchSize = 5;
+        for (let i = 0; i < combinations.length; i += batchSize) {
+            const batch = combinations.slice(i, i + batchSize);
+            const results = await Promise.all(
+                batch.map(word => isValidWord(word))
+            );
+            
+            batch.forEach((word, index) => {
+                if (results[index]) {
+                    validWords.push(word);
+                }
+            });
+        }
+
+        const categorizedWords = categorizeByLength(validWords);
+        displayResults(categorizedWords);
+        updateStats(categorizedWords);
+    } catch (error) {
+        console.error('Error during unscrambling:', error);
+        alert('An error occurred while unscrambling. Please try again.');
+    } finally {
+        toggleLoadingState(false);
+    }
 }
 
 function categorizeByLength(combinations) {
@@ -77,6 +115,11 @@ function categorizeByLength(combinations) {
         }
         categorized[length].push(word);
     });
+    
+    for (const length in categorized) {
+        categorized[length].sort();
+    }
+    
     return categorized;
 }
 
@@ -84,12 +127,23 @@ function displayResults(categorizedWords) {
     const resultsContainer = document.getElementById('resultsContainer');
     resultsContainer.innerHTML = '';
 
-    for (const [length, words] of Object.entries(categorizedWords)) {
+    const lengths = Object.keys(categorizedWords).sort((a, b) => a - b);
+
+    if (lengths.length === 0) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.textContent = 'No valid words found. Try different letters!';
+        resultsContainer.appendChild(noResults);
+        return;
+    }
+
+    lengths.forEach(length => {
+        const words = categorizedWords[length];
         const section = document.createElement('div');
         section.className = 'result-section';
 
         const header = document.createElement('h2');
-        header.textContent = `${length}-Letter Words`; 
+        header.textContent = `${length}-Letter Words (${words.length})`; 
         section.appendChild(header);
 
         const wordList = document.createElement('ul');
@@ -100,7 +154,25 @@ function displayResults(categorizedWords) {
         });
         section.appendChild(wordList);
         resultsContainer.appendChild(section);
-    }
+    });
 }
 
+document.getElementById('scrambledInput').addEventListener('input', (e) => {
+    const errorMessage = document.querySelector('.inline-error');
+    if (errorMessage) {
+        errorMessage.textContent = "";
+    }
+    
+    if (/\d/.test(e.target.value)) {
+        const inlineError = document.querySelector('.inline-error');
+        inlineError.textContent = "It's called a word unscrambler for a reason";
+    }
+});
+
 document.getElementById('unscrambleButton').addEventListener('click', descrambleWords);
+
+document.getElementById('scrambledInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        descrambleWords();
+    }
+});
