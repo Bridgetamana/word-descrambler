@@ -33,11 +33,11 @@ async function isValidWord(word) {
         } else if (response.status === 404) {
             return false;
         } else if (response.status === 429) {
-            console.warn(`Rate limit exceeded for word "${word}". Pausing before retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 4000));
+            // console.warn(`Rate limit exceeded for word "${word}". Pausing before retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
             return await isValidWord(word);
         } else {
-            console.error(`Error: Received status ${response.status} for word "${word}"`);
+            // console.error(`Error: Received status ${response.status} for word "${word}"`);
             return false;
         }
 
